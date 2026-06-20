@@ -4,16 +4,7 @@
 name: Build
 
 on:
-  push:
-    branches:
-      - "*"
-    tags:
-      - '!**'
-  pull_request:
-    branches:
-      - "*"
-    tags:
-      - '!**'
+  workflow_dispatch:
 
 jobs:
   build_linux:
@@ -36,9 +27,10 @@ jobs:
           python-version: '3.10'
       - name: Build native lib
         run: ./gradlew buildNativeProject
-      - name: Build Android bindings
-        run: ./gradlew :physx-jni-android:buildNativeProjectAndroid
       - name: Build and test JNI bindings
+        run: ./gradlew build
+
+      - name: Upload native lib artifacts
         run: ./gradlew build
 
       - name: Upload native lib artifacts
@@ -49,6 +41,42 @@ jobs:
             physx-jni/build/libs/*.jar
             physx-jni-natives-linux/build/libs/*.jar
             physx-jni-natives-linux-cuda/build/libs/*.jar
+          compression-level: 0
+
+  build_android:
+    name: Android build
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: lukka/get-cmake@latest
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Build native lib
+        run: ./gradlew buildNativeProject
+      - name: Build Android bindings
+        run: ./gradlew :physx-jni-android:buildNativeProjectAndroid
+      - name: Build Android AAR
+        run: ./gradlew :physx-jni-android:build
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-libs
+          path: |
+            physx-jni-android/build/outputs/aar/*.aar
+            physx-jni-android/build/libs/*.jar
           compression-level: 0
 
   build_windows:
