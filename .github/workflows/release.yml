@@ -4,118 +4,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
-  linux:
-    name: Build Linux native binaries
-    runs-on: ubuntu-22.04
-    environment: publish
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout project
-        uses: actions/checkout@v4
-        with:
-          lfs: true
-          submodules: true
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-      - name: Setup CMake
-        uses: lukka/get-cmake@latest
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Build native lib
-        run: ./gradlew buildNativeProject
-      - name: Upload Linux native lib artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-native-libs
-          path: |
-            */src/main/resources/de/fabmax/physxjni/linux/*.so
-            */src/main/resources/de/fabmax/physxjni/linux/*.so.sha1
-          compression-level: 0
-
-  windows:
-    name: Build Windows native binaries
-    runs-on: windows-latest
-    environment: publish
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout project
-        uses: actions/checkout@v4
-        with:
-          lfs: true
-          submodules: true
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-      - name: Setup CMake
-        uses: lukka/get-cmake@latest
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Build native lib
-        run: ./gradlew buildNativeProject
-      - name: Upload Windows native lib artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-native-libs
-          path: |
-            */src/main/resources/de/fabmax/physxjni/windows/*.dll
-            */src/main/resources/de/fabmax/physxjni/windows/*.dll.sha1
-          compression-level: 0
-
-  macos:
-    name: Build MacOS native binaries
-    runs-on: macos-14
-    environment: publish
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout project
-        uses: actions/checkout@v4
-        with:
-          lfs: true
-          submodules: true
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-      - name: Install coreutils
-        run: brew install coreutils
-      - name: Setup CMake
-        uses: lukka/get-cmake@latest
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Build native lib
-        run: ./gradlew buildNativeProject
-        env:
-          PM_PYTHON_EXT: python3
-      - name: Upload MacOS native lib artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-native-libs
-          path: |
-            */src/main/resources/de/fabmax/physxjni/macos/*.dylib
-            */src/main/resources/de/fabmax/physxjni/macos/*.dylib.sha1
-            */src/main/resources/de/fabmax/physxjni/macosarm/*.dylib
-            */src/main/resources/de/fabmax/physxjni/macosarm/*.dylib.sha1
-          compression-level: 0
-
   android:
     name: Build Android binaries
     runs-on: ubuntu-22.04
@@ -160,7 +48,7 @@ jobs:
   publish:
     name: Build and publish Java and Android libs
     runs-on: ubuntu-latest
-    needs: [ linux, macos, windows, android ]
+    needs: [ android ]
 
     steps:
       - name: Checkout project
